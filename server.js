@@ -13,7 +13,7 @@ const pool = new Pool({
 });
 
 app.use(express.json({ limit: '10mb' }));
-
+const AGENT_API_KEY = process.env.AGENT_API_KEY;
 async function initDB() {
 
   await pool.query(`
@@ -33,7 +33,7 @@ async function initDB() {
   console.log('agent_data table ready');
 
 }
-
+function requireAgentKey(req,res,next){if(!AGENT_API_KEY||req.get('x-agent-key')!==AGENT_API_KEY)return res.status(401).json({error:'Unauthorized'});next();}
 app.get('/api/health', async (req, res) => {
 
   try {
@@ -55,7 +55,7 @@ app.get('/api/health', async (req, res) => {
   }
 
 });
-app.post('/api/test-save', async (req, res) => {
+app.post('/api/test-save', requireAgentKey, async (req, res) => {
 
   try {
 
@@ -77,7 +77,7 @@ app.post('/api/test-save', async (req, res) => {
 
 });
 
-app.get('/api/test-read', async (req, res) => {
+app.get('/api/test-read', requireAgentKey, async (req, res) => {
 
   try {
 
