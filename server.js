@@ -76,7 +76,8 @@ app.post('/api/test-save', requireAgentKey, async (req, res) => {
   }
 
 });
-
+app.get('/api/data',requireAgentKey,async(req,res)=>{try{const r=await pool.query('SELECT data FROM agent_data WHERE id=$1',[1]);res.json({exists:r.rowCount>0,data:r.rows[0]?.data??null})}catch(e){res.status(500).json({error:'Database read failed'})}});
+app.post('/api/data',requireAgentKey,async(req,res)=>{try{const data=req.body;if(!data||typeof data!=='object'||Array.isArray(data)||!Object.keys(data).length)return res.status(400).json({error:'Invalid data'});const r=await pool.query('INSERT INTO agent_data (id,data) VALUES ($1,$2) ON CONFLICT (id) DO NOTHING RETURNING id',[1,JSON.stringify(data)]);if(!r.rowCount)return res.status(409).json({error:'Data already exists'});res.json({status:'ok'})}catch(e){res.status(500).json({error:'Database save failed'})}});
 app.get('/api/test-read', requireAgentKey, async (req, res) => {
 
   try {
