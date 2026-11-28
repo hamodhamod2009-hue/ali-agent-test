@@ -12,6 +12,28 @@ const pool = new Pool({
 
 });
 
+app.use(express.json({ limit: '10mb' }));
+
+async function initDB() {
+
+  await pool.query(`
+
+    CREATE TABLE IF NOT EXISTS agent_data (
+
+      id INTEGER PRIMARY KEY,
+
+      data JSONB NOT NULL,
+
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+
+    )
+
+  `);
+
+  console.log('agent_data table ready');
+
+}
+
 app.get('/api/health', async (req, res) => {
 
   try {
@@ -22,7 +44,13 @@ app.get('/api/health', async (req, res) => {
 
   } catch (err) {
 
-    res.status(503).json({ status: 'error', database: 'disconnected' });
+    res.status(503).json({
+
+      status: 'error',
+
+      database: 'disconnected'
+
+    });
 
   }
 
@@ -34,4 +62,14 @@ app.get('/', (req, res) => {
 
 });
 
-app.listen(process.env.PORT || 8080, '0.0.0.0');
+initDB().then(() => {
+
+  app.listen(process.env.PORT || 8080, '0.0.0.0');
+
+}).catch(err => {
+
+  console.error('Database initialization failed', err.message);
+
+  process.exit(1);
+
+});
