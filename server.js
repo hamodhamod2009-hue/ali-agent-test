@@ -55,7 +55,49 @@ app.get('/api/health', async (req, res) => {
   }
 
 });
+app.post('/api/test-save', async (req, res) => {
 
+  try {
+
+    await pool.query(
+
+      'INSERT INTO agent_data (id, data) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING',
+
+      [999999, JSON.stringify({ test: 'Ali Agent OK' })]
+
+    );
+
+    res.json({ status: 'ok' });
+
+  } catch (err) {
+
+    res.status(500).json({ status: 'error' });
+
+  }
+
+});
+
+app.get('/api/test-read', async (req, res) => {
+
+  try {
+
+    const result = await pool.query(
+
+      'SELECT data FROM agent_data WHERE id = $1',
+
+      [999999]
+
+    );
+
+    res.json(result.rows[0]?.data || {});
+
+  } catch (err) {
+
+    res.status(500).json({ status: 'error' });
+
+  }
+
+});
 app.get('/', (req, res) => {
 
   res.sendFile(path.join(__dirname, 'index.html'));
